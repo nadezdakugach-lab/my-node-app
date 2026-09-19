@@ -1,2 +1,11 @@
 node_modules/
 logs.txt
+student_*.txt
+report_*.json
+project_*/
+node_modules/
+logs.txt
+test-data*/
+test-data-promises*/
+mixed-data/
+data/

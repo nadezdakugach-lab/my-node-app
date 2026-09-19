@@ -8,14 +8,7 @@ async function ensureDir(dirPath) {
   await fs.mkdir(dirPath, { recursive: true });
 }
 
-async function createInfoFiles(baseDir, folders) {
-  for (const folder of folders) {
-    const infoPath = path.join(baseDir, folder, 'info.txt');
-    await fs.writeFile(infoPath, `Назначение папки: ${folder}`, 'utf8');
-  }
-}
-
-async function printTree(dirPath, prefix = '', isLast = true) {
+async function printTree(dirPath, prefix = '') {
   const items = await fs.readdir(dirPath);
   items.sort();
 
@@ -23,14 +16,14 @@ async function printTree(dirPath, prefix = '', isLast = true) {
     const item = items[i];
     const itemPath = path.join(dirPath, item);
     const stat = await fs.stat(itemPath);
-    const isLastItem = i === items.length - 1;
-    const connector = isLastItem ? '└── ' : '├── ';
+    const isLast = i === items.length - 1;
+    const connector = isLast ? '└── ' : '├── ';
 
     console.log(prefix + connector + item);
 
     if (stat.isDirectory()) {
-      const newPrefix = prefix + (isLastItem ? '    ' : '│   ');
-      await printTree(itemPath, newPrefix, isLastItem);
+      const newPrefix = prefix + (isLast ? '    ' : '│   ');
+      await printTree(itemPath, newPrefix);
     }
   }
 }
@@ -75,26 +68,20 @@ async function main() {
     for (const n of ['1', '2', '3']) {
       await ensureDir(path.join(componentsDir, n));
     }
-    console.log('\nДобавлены папки 1, 2, 3 в src/components');
+    console.log('\n[+] Добавлены папки 1, 2, 3 в src/components');
 
-    
-    const tempDir = path.join(dataDir, 'temp');
-    const newTempDir = path.join(dataDir, 'temp_moved');
-
-    const tempPath = path.join(dataDir, 'temp');
-    const movedTempPath = path.join(dataDir, 'output', 'temp');
-    await fs.rename(tempPath, movedTempPath);
-    console.log('Папка temp перемещена в data/output');
-
+    const tempInData = path.join(dataDir, 'temp');
+    const tempBackup = path.join(dataDir, 'temp_backup');
+    await fs.rename(tempInData, tempBackup);
+    console.log('[>] Папка temp временно переименована');
 
     const outputDir = path.join(dataDir, 'output');
     const resultsDir = path.join(dataDir, 'results');
     await fs.rename(outputDir, resultsDir);
-    console.log('Папка data/output переименована в data/results');
+    console.log('[R] Папка data/output переименована в data/results');
 
-   
-    await fs.rm(path.join(resultsDir, 'temp'), { recursive: true, force: true });
-    console.log('Папка temp удалена');
+    await fs.rm(tempBackup, { recursive: true, force: true });
+    console.log('[X] Папка temp удалена со всем содержимым');
 
     console.log('\n=== Дерево ПОСЛЕ изменений ===\n');
     console.log(PROJECT_DIR);

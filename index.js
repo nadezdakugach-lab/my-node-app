@@ -62,10 +62,9 @@ function calculatePi() {
     }
     return sum;
   }
- const pi = 16 * arctg(1 / 5, 40) - 4 * arctg(1 / 239, 30);
+  const pi = 16 * arctg(1 / 5, 40) - 4 * arctg(1 / 239, 30);
   return pi.toFixed(7);
 }
-
 
 class UserTracker extends EventEmitter {
   trackAction(userId, action, metadata) {

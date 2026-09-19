@@ -1,2 +1,8 @@
 node_modules/
 logs.txt
+test-data/
+test-data-promises/
+mixed-data/
+data/
+node_modules/
+logs.txt

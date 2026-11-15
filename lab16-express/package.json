@@ -1,0 +1,20 @@
+{
+  "name": "lab16-express",
+  "version": "1.0.0",
+  "description": "Лабораторная работа №16 — Express.js, вариант 12",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "task2": "node server-task2.js",
+    "task3": "node server-task3.js"
+  },
+  "keywords": [],
+  "author": "Вариант 12, ББМО-01-23",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "compression": "^1.7.4",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.4.0"
+  }
+}

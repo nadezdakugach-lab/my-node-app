@@ -12,7 +12,12 @@
   "type": "commonjs",
   "dependencies": {
     "@koa/router": "^15.7.0",
+    "chalk": "^4.1.2",
+    "cli-progress": "^3.12.0",
+    "commander": "^15.1.0",
+    "inquirer": "^8.2.6",
     "koa": "^3.2.1",
-    "koa-bodyparser": "^4.4.1"
+    "koa-bodyparser": "^4.4.1",
+    "ora": "^5.4.1"
   }
 }

@@ -1,0 +1,21 @@
+{
+  "name": "rest-api-lab-nadya",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@koa/router": "^15.7.1",
+    "dotenv": "^18.0.10",
+    "joi": "^18.3.2",
+    "koa": "^3.3.0",
+    "koa-bodyparser": "^4.4.1",
+    "mongodb": "^7.9.0"
+  }
+}

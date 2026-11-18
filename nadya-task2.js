@@ -1,53 +1,69 @@
-const { program } = require('commander');
+const express = require('express');
+const app = express();
+const PORT = 3000;
 
-program
-    .name('my-cli')
-    .description('CLI-приложение для лабораторной работы №17 (вариант 12)')
-    .version('1.0.0');
+app.use(express.json());
 
-program
-    .command('generate')
-    .description('сгенерировать отчёт')
-    .option('-t, --type <type>', 'тип отчёта (по умолчанию: "html")', 'html')
-    .option('-o, --output <path>', 'путь для сохранения')
-    .option('-f, --force', 'перезаписать существующий файл')
-    .option('--dry-run', 'показать что будет сделано без выполнения')
-    .option('-v, --verbose', 'подробный вывод')
-    .action((options) => {
-        const validTypes = ['html', 'pdf', 'json', 'csv'];
-        if (!validTypes.includes(options.type)) {
-            console.error('Ошибка: недопустимый тип отчёта "' + options.type + '".');
-            console.error('Допустимые значения: ' + validTypes.join(', '));
-            process.exit(1);
-        }
+let books = [
+    { id: 1, title: 'Война и мир', author: 'Толстой', year: 1869 }
+];
+let nextId = 2;
 
-        const output = options.output || './output.' + options.type;
+app.get('/api/books', (req, res) => {
+    res.json(books);
+});
 
-        if (options.verbose) {
-            console.log('[VERBOSE] Запуск генерации отчёта...');
-            console.log('[VERBOSE] Тип отчёта: ' + options.type);
-            console.log('[VERBOSE] Путь сохранения: ' + output);
-        }
+app.get('/api/books/search', (req, res) => {
+    const author = req.query.author;
+    if (!author) {
+        return res.status(400).json({ error: 'Укажите параметр author' });
+    }
+    const result = books.filter(b => b.author.toLowerCase().includes(author.toLowerCase()));
+    res.json(result);
+});
 
-        if (options.dryRun) {
-            console.log('[DRY-RUN] Будет сгенерирован отчёт типа: ' + options.type);
-            console.log('[DRY-RUN] Файл будет сохранён в: ' + output);
-            console.log('[DRY-RUN] Действия не выполнены (режим проверки)');
-            return;
-        }
+app.get('/api/books/:id', (req, res) => {
+    const id = Number(req.params.id);
+    const book = books.find(b => b.id === id);
+    if (!book) {
+        return res.status(404).json({ error: 'Книга не найдена' });
+    }
+    res.json(book);
+});
 
-        console.log('Отчёт успешно сгенерирован: ' + output);
-        process.exit(0);
-    });
+app.post('/api/books', (req, res) => {
+    const { title, author, year } = req.body;
+    if (!title || !author || !year) {
+        return res.status(400).json({ error: 'Неверные данные' });
+    }
+    const book = { id: nextId++, title, author, year };
+    books.push(book);
+    res.status(201).json(book);
+});
 
-program
-    .command('convert')
-    .description('конвертировать файл')
-    .option('-i, --input <path>', 'входной файл')
-    .option('-o, --output <path>', 'выходной файл')
-    .action((options) => {
-        console.log('Конвертация: ' + (options.input || 'не указан') + ' -> ' + (options.output || 'не указан'));
-        process.exit(0);
-    });
+app.put('/api/books/:id', (req, res) => {
+    const id = Number(req.params.id);
+    const book = books.find(b => b.id === id);
+    if (!book) {
+        return res.status(404).json({ error: 'Книга не найдена' });
+    }
+    const { title, author, year } = req.body;
+    if (title) book.title = title;
+    if (author) book.author = author;
+    if (year) book.year = year;
+    res.json(book);
+});
 
-program.parse(process.argv);
+app.delete('/api/books/:id', (req, res) => {
+    const id = Number(req.params.id);
+    const index = books.findIndex(b => b.id === id);
+    if (index === -1) {
+        return res.status(404).json({ error: 'Книга не найдена' });
+    }
+    books.splice(index, 1);
+    res.json({ message: 'Книга удалена' });
+});
+
+app.listen(PORT, () => {
+    console.log('Сервер запущен на порту ' + PORT);
+});

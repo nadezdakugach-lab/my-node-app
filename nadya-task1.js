@@ -1,37 +1,41 @@
-const args = process.argv.slice(2);
+const express = require('express');
+const app = express();
+const PORT = 3000;
 
-if (args.length === 0) {
-    console.log('Использование: node nadya-task1.js <команда> [аргументы]');
-    console.log('Доступные команды:');
-    console.log('  greet <имя> - поприветствовать пользователя');
-    console.log('  info - вывести информацию о группе');
-    process.exit(0);
-}
+app.get('/', (req, res) => {
+    const now = new Date().toLocaleString('ru-RU');
+    res.send(`
+        <h1>Лабораторная работа №16</h1>
+        <p>Студент: Кугач Надежда</p>
+        <p>Группа: 477</p>
+        <p>Дата и время: ${now}</p>
+        <p>Добро пожаловать!</p>
+        <h3>Доступные маршруты:</h3>
+        <ul>
+            <li><a href="/">/</a> — главная</li>
+            <li><a href="/about">/about</a> — о разработчике</li>
+            <li><a href="/contacts">/contacts</a> — контакты</li>
+        </ul>
+    `);
+});
 
-const cmd = args[0];
+app.get('/about', (req, res) => {
+    res.send(`
+        <h1>О разработчике</h1>
+        <p>Студент: Кугач Надежда</p>
+        <p>Группа: 477</p>
+        <p>Лабораторная работа №16: Express.js</p>
+    `);
+});
 
-if (cmd === 'greet') {
-    const name = args[1];
-    if (!name) {
-        console.error('Ошибка: укажите имя');
-        process.exit(1);
-    }
-    console.log('Привет, ' + name + '! Добро пожаловать в CLI-приложение группы 477.');
-    process.exit(0);
-} else if (cmd === 'info') {
-    console.log('Группа: 477');
-    console.log('Студент: Кугач Надежда');
-    console.log('Лабораторная работа: №17');
-    console.log('Дата: ' + new Date().toLocaleString('ru-RU'));
-    process.exit(0);
-} else if (cmd === '--help') {
-    console.log('Использование: node nadya-task1.js <команда> [аргументы]');
-    console.log('Доступные команды:');
-    console.log('  greet <имя> - поприветствовать пользователя');
-    console.log('  info - вывести информацию о группе');
-    process.exit(0);
-} else {
-    console.error('Ошибка: неизвестная команда "' + cmd + '"');
-    console.error('Для справки используйте: node nadya-task1.js --help');
-    process.exit(1);
-}
+app.get('/contacts', (req, res) => {
+    res.send(`
+        <h1>Контакты</h1>
+        <p>Email: nadya@example.com</p>
+        <p>GitHub: nadya-kugach</p>
+    `);
+});
+
+app.listen(PORT, () => {
+    console.log('Сервер запущен на порту ' + PORT);
+});

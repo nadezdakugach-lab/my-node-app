@@ -1,82 +1,81 @@
-const { program } = require('commander');
-const inquirer = require('inquirer');
+const express = require('express');
+const compression = require('compression');
+const rateLimit = require('express-rate-limit');
 
-program
-    .name('my-cli')
-    .description('CLI-приложение с интерактивным режимом (вариант 12)')
-    .version('1.0.0');
+const app = express();
+const PORT = 3000;
 
-program
-    .command('init')
-    .description('инициализация проекта')
-    .option('--name <name>', 'название проекта')
-    .option('--type <type>', 'тип проекта (web, cli, library, microservice)')
-    .option('--typescript', 'добавить TypeScript')
-    .option('--prettier', 'добавить Prettier')
-    .option('--eslint', 'добавить ESLint')
-    .option('--jest', 'добавить Jest')
-    .option('--git', 'использовать Git')
-    .option('--no-interactive', 'отключить интерактивный режим')
-    .action(async (options) => {
-        let name = options.name;
-        let type = options.type;
-        let opts = [];
-        let useGit = options.git;
+app.use(express.json());
+app.use(compression());
 
-        if (options.typescript) opts.push('TypeScript');
-        if (options.prettier) opts.push('Prettier');
-        if (options.eslint) opts.push('ESLint');
-        if (options.jest) opts.push('Jest');
+const limiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: 100,
+    message: { error: 'Слишком много запросов', status: 429 },
+    standardHeaders: true,
+    legacyHeaders: false
+});
+app.use(limiter);
 
-        if (options.interactive === false) {
-            if (!name || !type) {
-                console.error('Ошибка: в неинтерактивном режиме необходимо указать --name и --type');
-                process.exit(1);
-            }
-        } else if (!name || !type) {
-            const answers = await inquirer.prompt([
-                {
-                    type: 'input',
-                    name: 'name',
-                    message: 'Введите название проекта:',
-                    default: 'my-project'
-                },
-                {
-                    type: 'list',
-                    name: 'type',
-                    message: 'Выберите тип проекта:',
-                    choices: ['Web-приложение', 'CLI-утилита', 'Библиотека', 'Микросервис']
-                },
-                {
-                    type: 'checkbox',
-                    name: 'opts',
-                    message: 'Выберите дополнительные опции:',
-                    choices: ['TypeScript', 'ESLint', 'Prettier', 'Jest']
-                },
-                {
-                    type: 'confirm',
-                    name: 'git',
-                    message: 'Использовать Git?',
-                    default: true
-                },
-                {
-                    type: 'password',
-                    name: 'token',
-                    message: 'Введите токен доступа:',
-                    mask: '*'
-                }
-            ]);
-            name = answers.name;
-            type = answers.type;
-            opts = answers.opts;
-            useGit = answers.git;
-        }
-
-        console.log(' Проект "' + name + '" успешно инициализирован!');
-        console.log('Тип: ' + type);
-        console.log('Опции: ' + (opts.length > 0 ? opts.join(', ') : 'нет'));
-        console.log('Git: ' + (useGit ? 'да' : 'нет'));
-        process.exit(0);
+app.use((req, res, next) => {
+    const start = Date.now();
+    const now = new Date().toLocaleString('ru-RU');
+    res.on('finish', () => {
+        const ms = Date.now() - start;
+        console.log(`[${now}] ${req.method} ${req.url} ${res.statusCode} - ${ms}ms`);
     });
+    next();
+});
 
-program.parse(process.argv);
+let books = [
+    { id: 1, title: 'Война и мир', author: 'Толстой', year: 1869 }
+];
+let nextId = 2;
+
+app.get('/api/books', (req, res) => {
+    res.json(books);
+});
+
+app.get('/api/books/:id', (req, res) => {
+    const id = Number(req.params.id);
+    const book = books.find(b => b.id === id);
+    if (!book) {
+        const err = new Error('Книга не найдена');
+        err.status = 404;
+        throw err;
+    }
+    res.json(book);
+});
+
+app.post('/api/books', (req, res) => {
+    const { title, author, year } = req.body;
+    if (!title || !author || !year) {
+        return res.status(400).json({ error: 'Неверные данные', status: 400 });
+    }
+    const book = { id: nextId++, title, author, year };
+    books.push(book);
+    res.status(201).json(book);
+});
+
+app.get('/error', (req, res) => {
+    throw new Error('Внутренняя ошибка сервера');
+});
+
+app.get('/async-error', async (req, res, next) => {
+    try {
+        await Promise.reject(new Error('Асинхронная ошибка'));
+    } catch (err) {
+        next(err);
+    }
+});
+
+app.use((err, req, res, next) => {
+    res.status(err.status || 500).json({
+        error: err.message || 'Внутренняя ошибка сервера',
+        status: err.status || 500
+    });
+});
+
+app.listen(PORT, () => {
+    console.log('Сервер запущен на порту ' + PORT);
+});
